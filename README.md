@@ -1,3 +1,4 @@
+[🇷🇺Прочитать на Русском](https://github.com/vewaclub/RMBNametags/blob/master/README_ru_ru.md) 
 # RMBNametags
  [![CodeFactor](https://www.codefactor.io/repository/github/vewaclub/rmbnametags/badge)](https://www.codefactor.io/repository/github/vewaclub/rmbnametags)
  [![Modrinth downloads](https://img.shields.io/modrinth/dt/rmbnametags)](https://modrinth.com/plugin/rmbnametags)
@@ -18,7 +19,7 @@ A simple Minecraft plugin to hide player names and show them on right-click in a
 display-time: 3
 
 # Change nickname format here
-# Use & for colors and {PLAYER_NAME} variable
+# Use & for colors or HEX (#RRGGBB) and {PLAYER_NAME} variable
 name-format: "&a&l{PLAYER_NAME}"
 ```
 
