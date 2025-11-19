@@ -83,12 +83,7 @@ public class ReloadCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 // build another text for custom name
-                StringBuilder nameBuilder = new StringBuilder();
-                for (int i = 2; i < args.length; i++) {
-                    if (!nameBuilder.isEmpty()) nameBuilder.append(" ");
-                    nameBuilder.append(args[i]);
-                }
-                customName = nameBuilder.toString();
+                customName = buildCustomName(args);
             }
         } else {
             // if without player - set himself
@@ -100,45 +95,7 @@ public class ReloadCommand implements CommandExecutor, TabCompleter {
         }
 
         // task
-        boolean success;
-        String messageKey;
-        Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("%player%", targetPlayer.getName());
-
-        if (hide) {
-            success = plugin.hidePlayer(targetPlayer, customName);
-            if (success) {
-                if (customName != null) {
-                    messageKey = (targetPlayer == sender) ? "Hide-Custom-Self" : "Hide-Custom-Other";
-                    placeholders.put("%custom_name%", customName);
-                } else {
-                    messageKey = (targetPlayer == sender) ? "Hide-Self" : "Hide-Other";
-                }
-            } else {
-                messageKey = "Already-Hidden";
-            }
-        } else {
-            success = plugin.showPlayer(targetPlayer);
-            messageKey = (targetPlayer == sender) ? "Show-Self" : "Show-Other";
-            if (!success) {
-                messageKey = "Already-Visible";
-            }
-        }
-
-        sendMessage(sender, messageKey, placeholders);
-
-        // Messages
-        if (success && targetPlayer != sender) {
-            if (hide) {
-                if (customName != null) {
-                    targetPlayer.sendMessage(colorize(plugin.getConfig().getString("Messages.Hide-Custom-Self", "&aYour nickname is now hidden with custom name: %custom_name%").replace("%custom_name%", customName)));
-                } else {
-                    sendMessage(targetPlayer, "Hide-Self");
-                }
-            } else {
-                sendMessage(targetPlayer, "Show-Self");
-            }
-        }
+        executeAction(sender, targetPlayer, customName, hide);
     }
 
     @Override
@@ -163,6 +120,33 @@ public class ReloadCommand implements CommandExecutor, TabCompleter {
                 .collect(Collectors.toList());
     }
 
+    private void executeAction(CommandSender sender, Player targetPlayer, String customName, boolean hide) {
+        boolean success;
+        String messageKey;
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("%player%", targetPlayer.getName());
+
+        if (hide) {
+            success = plugin.hidePlayer(targetPlayer, customName);
+            messageKey = getHideMessageKey(success, targetPlayer == sender, customName);
+            if (success && customName != null) {
+                placeholders.put("%custom_name%", customName);
+            }
+        } else {
+            success = plugin.showPlayer(targetPlayer);
+            messageKey = (targetPlayer == sender) ? "Show-Self" : "Show-Other";
+            if (!success) {
+                messageKey = "Already-Visible";
+            }
+        }
+
+        sendMessage(sender, messageKey, placeholders);
+
+        if (success && targetPlayer != sender) {
+            sendNotificationToTarget(targetPlayer, customName, hide);
+        }
+    }
+
     private void sendMessage(CommandSender sender, String key) {
         sendMessage(sender, key, new HashMap<>());
     }
@@ -180,6 +164,29 @@ public class ReloadCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(colorize(message));
     }
 
+    private void sendNotificationToTarget(Player target, String customName, boolean hide) {
+        if (hide) {
+            if (customName != null) {
+                String message = plugin.getConfig().getString("Messages.Hide-Custom-Self",
+                        "&aYour nickname is now hidden with custom name: %custom_name%");
+                target.sendMessage(colorize(message.replace("%custom_name%", customName)));
+            } else {
+                sendMessage(target, "Hide-Self");
+            }
+        } else {
+            sendMessage(target, "Show-Self");
+        }
+    }
+
+    private String buildCustomName(String[] args) {
+        StringBuilder nameBuilder = new StringBuilder();
+        for (int i = 2; i < args.length; i++) {
+            if (!nameBuilder.isEmpty()) nameBuilder.append(" ");
+            nameBuilder.append(args[i]);
+        }
+        return nameBuilder.toString();
+    }
+
     private String colorize(String input) {
         return ChatColor.translateAlternateColorCodes('&', input);
     }
@@ -193,6 +200,12 @@ public class ReloadCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(colorize("&7/rmbnametags hide &8- hide your nickname"));
         sender.sendMessage(colorize("&7/rmbnametags hide Mr_Milota &8- hide player's nickname"));
         sender.sendMessage(colorize("&7/rmbnametags hide Mr_Milota Admin &8- hide with custom name"));
+    }
+
+    private String getHideMessageKey(boolean success, boolean isSelf, String customName) {
+        if (!success) return "Already-Hidden";
+        if (customName != null) return isSelf ? "Hide-Custom-Self" : "Hide-Custom-Other";
+        return isSelf ? "Hide-Self" : "Hide-Other";
     }
 
     private String getDefaultMessage(String key) {
