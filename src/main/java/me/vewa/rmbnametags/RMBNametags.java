@@ -140,39 +140,37 @@ public class RMBNametags extends JavaPlugin implements Listener {
 
     private void showHiddenPlayerName(Player viewer, Player target) {
         String customName = getHiddenPlayerName(target);
-        String displayText;
 
         if (customName != null) {
-            // кастомное имя
-            displayText = colorize(customName);
+            // custom name
+            String displayText = processDisplayText(viewer, target, customName);
+            showText(viewer, displayText);
         } else {
-            // формат из конфига
-            if (hideNameFormat == null || hideNameFormat.isEmpty()) {
-                return; // Не показываем ничего, если формат не задан
-            }
-            displayText = colorize(hideNameFormat.replace("{PLAYER_NAME}", target.getName()));
-
-            if (HAS_PLACEHOLDER) {
-                displayText = PlaceholderAPI.setPlaceholders(target, displayText);
-                displayText = PlaceholderAPI.setRelationalPlaceholders(viewer, target, displayText);
+            // format from config
+            if (hideNameFormat != null && !hideNameFormat.isEmpty()) {
+                String formattedText = hideNameFormat.replace("{PLAYER_NAME}", target.getName());
+                String displayText = processDisplayText(viewer, target, formattedText);
+                showText(viewer, displayText);
             }
         }
-
-        showText(viewer, displayText);
     }
 
     // show nickname according to display-location
     private void showConfigured(Player viewer, Player target) {
         String formatted = colorize(nameFormat.replace("{PLAYER_NAME}", target.getName()));
-
-        if (HAS_PLACEHOLDER) {
-            formatted = PlaceholderAPI.setPlaceholders(target, formatted); // support Placeholders
-            formatted = PlaceholderAPI.setRelationalPlaceholders(viewer,target,formatted); // and rel placeholders
-        }
-
-        showText(viewer, formatted);
+        String displayText = processDisplayText(viewer, target, formatted);
+        showText(viewer, displayText);
     }
 
+    // method for apply placeholders and colors
+    private String processDisplayText(Player viewer, Player target, String text) {
+        if (HAS_PLACEHOLDER) {
+            text = PlaceholderAPI.setPlaceholders(target, text);
+            text = PlaceholderAPI.setRelationalPlaceholders(viewer, target, text);
+        }
+
+        return colorize(text);
+    }
 
     // method for show text
     private void showText(Player viewer, String text) {
@@ -194,8 +192,9 @@ public class RMBNametags extends JavaPlugin implements Listener {
         }
     }
 
+    // methods for hidden players
 
-    // methods for hidden players - now not usage
+    // now not usage
     public boolean hidePlayer(Player player) {
         return hidePlayer(player, null);
     }
@@ -216,11 +215,11 @@ public class RMBNametags extends JavaPlugin implements Listener {
 
     public String getHiddenPlayerName(Player player) {
         String customName = hiddenPlayers.get(player.getUniqueId());
-        // Если пустая строка - возвращаем null (использовать формат из конфига)
+        // if empty -> null (using format from config)
         return (customName != null && !customName.isEmpty()) ? customName : null;
     }
 
-    // nor usage for now
+    // not usage for now
     public Map<UUID, String> getHiddenPlayers() {
         return new HashMap<>(hiddenPlayers);
     }
