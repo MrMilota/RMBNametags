@@ -1,4 +1,4 @@
-[🇷🇺Read in Russian](https://github.com/vewaclub/RMBNametags/blob/master/README_ru_ru.md)
+[🇷🇺Прочитать на Русском](https://github.com/vewaclub/RMBNametags/blob/master/README_ru_ru.md)
 
 # RMBNametags
 
@@ -19,7 +19,6 @@ A simple Minecraft plugin to hide player names and show them on right-click in a
 - Custom hide names with special format
 - Hide/show commands with custom names
 - Invisibility respect option
-- Multi-language messages
 
 ## Commands
 
